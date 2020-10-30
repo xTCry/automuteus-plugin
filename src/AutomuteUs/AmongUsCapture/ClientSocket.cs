@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json;
 using SocketIOClient;
-using SocketIOClient.Exceptions;
 
 namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 {
@@ -17,9 +14,14 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 		{
 			socket = new SocketIO();
 
-            socket.OnConnected += async (sender, e) =>
+			// Register handlers for game-state change events.
+			GameReader.OnGameStateChanged += GameStateChangedHandler;
+			GameReader.OnPlayerChanged += PlayerChangedHandler;
+			GameReader.OnJoinedLobby += JoinedLobbyHandler;
+
+			socket.OnConnected += async (sender, e) =>
 			{
-				AutomuteUsPlugin.Log("ClientSocket", "Connected successfully! => " + socket.ServerUri.ToString());
+				AutomuteUsPlugin.Log("ClientSocket", $"Connected successfully! => {socket.ServerUri.ToString()}");
 
 				await socket.EmitAsync("connectCode", ConnectCode);
 	
@@ -40,10 +42,10 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 		 */
 		public async ValueTask<bool> Connect(string url, string connectCode)
 		{
+			ConnectCode = connectCode;
+
 			try
 			{
-				AutomuteUsPlugin.Log("ClientSocket", "Try send ConnectCode: " + connectCode);
-				ConnectCode = connectCode;
 				socket.ServerUri = new Uri(url);
 
 				if (socket.Connected) await socket.DisconnectAsync();
@@ -68,7 +70,7 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 			}
 			catch (Exception e)
 			{
-				AutomuteUsPlugin.Log("ClientSocket", "Fail! Invalid bot host, not connecting. " + e.Message);
+				AutomuteUsPlugin.Log("ClientSocket", $"Fail! Invalid bot host, not connecting. {e.Message}");
 			}
 			return false;
 		}
@@ -81,7 +83,29 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 		private void OnConnectionFailure(AggregateException e = null)
 		{
 			var message = e != null ? e.Message : "A generic connection error occured.";
-			AutomuteUsPlugin.Log("ClientSocket", "Error: " + message);
+			AutomuteUsPlugin.Log("ClientSocket", $"Error: {message}");
+		}
+
+		private void Emit(string eventName, params object[] data)
+		{
+			if (!socket.Connected) return;
+			socket.EmitAsync(eventName, data);
+		}
+
+		private void GameStateChangedHandler(object sender, GameStateChangedEventArgs e)
+		{
+			Emit("state", JsonSerializer.Serialize(e.NewState));
+		}
+
+		private void PlayerChangedHandler(object sender, PlayerChangedEventArgs e)
+		{
+			Emit("player", JsonSerializer.Serialize(e));
+		}
+
+		private void JoinedLobbyHandler(object sender, LobbyEventArgs e)
+		{
+			Emit("lobby", JsonSerializer.Serialize(e));
+			AutomuteUsPlugin.Log("ClientSocket", $"Room code ({e.LobbyCode}) sent to server.");
 		}
 	}
 }

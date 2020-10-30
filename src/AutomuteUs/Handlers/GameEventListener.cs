@@ -1,26 +1,31 @@
 ﻿using Impostor.Api.Events;
+using Impostor.Plugins.AutomuteUs.AmongUsCapture;
 using System;
 
 namespace Impostor.Plugins.AutomuteUs.Handlers
 {
 	class GameEventListener: IEventListener
     {
+        public const string TAG = "GameEvent";
+
         [EventListener]
         public void OnGameCreated(IGameCreatedEvent e)
         {
-            Console.WriteLine("Game > created");
+            AutomuteUsPlugin.Log(TAG, "Game > created");
+            GameReader.GameStateChanged(e.Game.Code, GameState.LOBBY);
         }
 
         [EventListener]
         public void OnGameStarting(IGameStartingEvent e)
         {
-            Console.WriteLine("Game > starting");
+            AutomuteUsPlugin.Log(TAG, "Game > starting");
+            GameReader.GameStateChanged(e.Game.Code, GameState.TASKS);
         }
 
         [EventListener]
         public void OnGameStarted(IGameStartedEvent e)
         {
-            Console.WriteLine("Game > started");
+            GameReader.GameStateChanged(e.Game.Code, GameState.TASKS);
 
             foreach (var player in e.Game.Players)
             {
@@ -33,25 +38,27 @@ namespace Impostor.Plugins.AutomuteUs.Handlers
         [EventListener]
         public void OnGameEnded(IGameEndedEvent e)
         {
-            Console.WriteLine("Game > ended");
+            GameReader.GameStateChanged(e.Game.Code, GameState.LOBBY);
+            GameReader.JoinedLobby(e.Game.Code);
         }
 
         [EventListener]
         public void OnGameDestroyed(IGameDestroyedEvent e)
         {
-            Console.WriteLine("Game > destroyed");
+            GameReader.GameStateChanged(e.Game.Code, GameState.MENU);
+            AutomuteUsPlugin.Log(TAG, "Game > destroyed");
         }
 
         [EventListener]
         public void OnPlayerJoined(IGamePlayerJoinedEvent e)
         {
-            Console.WriteLine("Player joined a game.");
+            AutomuteUsPlugin.Log(TAG, "Player joined a game.");
         }
 
         [EventListener]
         public void OnPlayerLeftGame(IGamePlayerLeftEvent e)
         {
-            Console.WriteLine("Player left a game.");
+            AutomuteUsPlugin.Log(TAG, "Player left a game.");
         }
     }
 }

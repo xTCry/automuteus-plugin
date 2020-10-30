@@ -1,24 +1,21 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Impostor.Api.Events.Managers;
 using Impostor.Api.Plugins;
 using Impostor.Plugins.AutomuteUs.Handlers;
 using Impostor.Plugins.AutomuteUs.AmongUsCapture;
-using System.Threading;
 using Impostor.Api.Net.Manager;
-using System.Linq;
 
 namespace Impostor.Plugins.AutomuteUs
 {
     [ImpostorPlugin(
-        package: "us.automute",
+        package: "us.automute.impostor",
         name: "Discord AutomuteUs",
         author: "xTCry",
         version: "0.0.1")]
     public class AutomuteUsPlugin : PluginBase
     {
-        public const string TAG = "[AutomuteUsPlugin] ";
+        public const string TAG = "AutomuteUsPlugin";
         public static ILogger<AutomuteUsPlugin> _logger;
         private readonly IEventManager _eventManager;
 
@@ -30,7 +27,6 @@ namespace Impostor.Plugins.AutomuteUs
             _eventManager = eventManager;
 
             Log("PluginConfig Host: " + PluginConfig.config.Host);
-            Log("Clients: " + clientManager.Clients.ToArray().Length);
         }
 
         public override async ValueTask EnableAsync()
@@ -48,6 +44,8 @@ namespace Impostor.Plugins.AutomuteUs
                 return;
 
             _eventManager.RegisterListener(new GameEventListener());
+            _eventManager.RegisterListener(new MeetingEventListener());
+            _eventManager.RegisterListener(new PlayerEventListener());
         }
 
         public override async ValueTask DisableAsync()
@@ -60,10 +58,10 @@ namespace Impostor.Plugins.AutomuteUs
         {
             if (str == null)
             {
-                _logger.LogInformation(TAG + prefix);
+                _logger.LogInformation($"[{TAG}] {prefix}");
                 return;
             }
-            _logger.LogInformation(TAG + "[" + prefix + "] " + str);
+            _logger.LogInformation($"[{TAG}] [{prefix}] {str}");
         }
     }
 }
