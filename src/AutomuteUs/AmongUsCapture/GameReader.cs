@@ -43,8 +43,7 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
         LOBBY,
         TASKS,
         DISCUSSION,
-        // ! it can't be
-        MENU,
+        MENU, // ! it can't be
         UNKNOWN
     }
 

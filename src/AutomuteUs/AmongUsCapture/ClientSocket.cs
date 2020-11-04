@@ -47,6 +47,7 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 			try
 			{
 				socket.ServerUri = new Uri(url);
+				socket.Options.AllowedRetryFirstConnection = false;
 
 				if (socket.Connected) await socket.DisconnectAsync();
 

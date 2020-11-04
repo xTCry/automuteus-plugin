@@ -4,7 +4,6 @@ using Impostor.Api.Events.Managers;
 using Impostor.Api.Plugins;
 using Impostor.Plugins.AutomuteUs.Handlers;
 using Impostor.Plugins.AutomuteUs.AmongUsCapture;
-using Impostor.Api.Net.Manager;
 
 namespace Impostor.Plugins.AutomuteUs
 {
@@ -21,17 +20,18 @@ namespace Impostor.Plugins.AutomuteUs
 
         public static readonly ClientSocket socket = new ClientSocket();
 
-        public AutomuteUsPlugin(ILogger<AutomuteUsPlugin> logger, IEventManager eventManager, IClientManager clientManager)
+        public AutomuteUsPlugin(ILogger<AutomuteUsPlugin> logger, IEventManager eventManager)
         {
             _logger = logger;
             _eventManager = eventManager;
-
-            Log("PluginConfig Host: " + PluginConfig.config.Host);
         }
 
         public override async ValueTask EnableAsync()
         {
             Log("Is being enabled.");
+            Log($"[PluginConfig] Host: {PluginConfig.config.Host}; ConnectCode: {PluginConfig.config.ConnectCode}");
+
+            _eventManager.RegisterListener(new GameEventListener());
 
             if (PluginConfig.config.ConnectCode == "")
                 return;
@@ -39,18 +39,14 @@ namespace Impostor.Plugins.AutomuteUs
             // Run socket in background.
             // Important to wait for init to have actually finished before continuing
             await Task.Factory.StartNew(() => socket.Init());
-            bool connected = await socket.Connect(PluginConfig.config.Host, PluginConfig.config.ConnectCode);
-            if (!connected)
-                return;
 
-            _eventManager.RegisterListener(new GameEventListener());
-            _eventManager.RegisterListener(new MeetingEventListener());
-            _eventManager.RegisterListener(new PlayerEventListener());
+            await socket.Connect(PluginConfig.config.Host, PluginConfig.config.ConnectCode);
         }
 
         public override async ValueTask DisableAsync()
         {
             await socket?.DisconnectAsync();
+            await Task.Delay(500);
             Log("Is being disabled.");
         }
 

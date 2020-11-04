@@ -19,7 +19,7 @@
 	<ItemGroup>
 		<PackageReference Include="Config.Net" Version="4.15.0" />
 		<PackageReference Include="Config.Net.Json" Version="4.15.0" />
-		<PackageReference Include="Impostor.Api" Version="1.2.2-ci.71" />
+		<PackageReference Include="Impostor.Api" Version="1.2.2-ci.91" />
 		<PackageReference Include="SocketIOClient" Version="2.0.2.9" />
 	</ItemGroup>
 
