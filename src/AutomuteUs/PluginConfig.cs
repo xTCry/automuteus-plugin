@@ -11,10 +11,7 @@ namespace Impostor.Plugins.AutomuteUs
         [Option(Alias = "Host", DefaultValue = "http://localhost:8123")]
         public string Host { get; }
 
-        /**
-		 * TODO: change ConnectCode to SecretKey
-		 */
-        [Option(Alias = "ConnectCode", DefaultValue = "")]
-        public string ConnectCode { get; }
+        [Option(Alias = "SecretKey", DefaultValue = "")]
+        public string SecretKey { get; }
 	}
 }

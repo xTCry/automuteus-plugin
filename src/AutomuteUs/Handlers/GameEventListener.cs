@@ -11,147 +11,85 @@ namespace Impostor.Plugins.AutomuteUs.Handlers
     {
         public const string TAG = "GameEvent";
 
-        public bool inGame;
-
-		[EventListener]
+		/*[EventListener]
         public void OnGameCreated(IGameCreatedEvent e)
         {
             AutomuteUsPlugin.Log(TAG, "Game > created");
-            GameReader.GameStateChanged(e.Game.Code, GameState.LOBBY);
-            // inGame = true;
-        }
+            GamesManager.GameStateChanged(e.Game.Code, GameState.LOBBY);
+        }*/
 
         [EventListener]
         public void OnGameDestroyed(IGameDestroyedEvent e)
         {
-            AutomuteUsPlugin.Log(TAG, "Game > destroyed");
-            GameReader.GameStateChanged(e.Game.Code, GameState.MENU);
-            inGame = false;
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnGameClose(e);
         }
 
         [EventListener]
         public void OnGameStarting(IGameStartingEvent e)
         {
-            AutomuteUsPlugin.Log(TAG, "Game > starting");
-            GameReader.GameStateChanged(e.Game.Code, GameState.TASKS);
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnGameStarting(e);
         }
 
-        /*[EventListener]
+        [EventListener]
         public void OnGameStarted(IGameStartedEvent e)
         {
-            GameReader.GameStateChanged(e.Game.Code, GameState.TASKS);
-
-            foreach (var player in e.Game.Players)
-            {
-                var info = player.Character.PlayerInfo;
-
-                Console.WriteLine($"- {info.PlayerName} {info.IsImpostor}");
-            }
-        }*/
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnGameStarted(e);
+        }
 
         [EventListener]
         public void OnGameEnded(IGameEndedEvent e)
         {
-            GameReader.GameStateChanged(e.Game.Code, GameState.LOBBY);
-            GameReader.JoinedLobby(e.Game.Code);
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnGameEnded(e);
         }
-
-        /*[EventListener]
-        public void OnPlayerJoined(IGamePlayerJoinedEvent e)
-        {
-            AutomuteUsPlugin.Log(TAG, "Player joined a game.");
-        }
-
-        [EventListener]
-        public void OnPlayerLeftGame(IGamePlayerLeftEvent e)
-        {
-            AutomuteUsPlugin.Log(TAG, "Player left a game.");
-        }*/
 
         [EventListener]
         public void OnPlayerSpawned(IPlayerSpawnedEvent e)
         {
-            GameReader.PlayerChanged(e.Game.Code, e.PlayerControl.PlayerInfo, PlayerAction.Joined);
-
-            if (!inGame)
-			{
-                var playerName = e.PlayerControl.PlayerInfo.PlayerName;
-                e.PlayerControl.SetNameAsync("[008080ff]AutometeUs");
-                e.PlayerControl.SendChatAsync("We play by [008080ff]Discord with AutometeUs");
-                e.PlayerControl.SetNameAsync(playerName);
-
-                inGame = true;
-            }
-
-            // Need to make a local copy because it might be possible that
-            // the event gets changed after being handled.
-            var clientPlayer = e.ClientPlayer;
-            var playerControl = e.PlayerControl;
-
-            Task.Run(async () =>
+            Game game = AutomuteUsPlugin.gamesManager.GetGame(e);
+            if (game == null)
             {
-                Console.WriteLine($"Starting player #{clientPlayer.Client.Id} watcher.");
-
-                var lastColor = playerControl.PlayerInfo.ColorId;
-
-                while (clientPlayer.Client.Connection != null &&
-                       clientPlayer.Client.Connection.IsConnected)
+                    _ = ChatManager.SendServerMessage(e.PlayerControl, "We play by [add8e6ff]Discord [ffffffff]with [008080ff]AutometeUs");
+                if (e.ClientPlayer.IsHost)
                 {
-                    if (e.PlayerControl.PlayerInfo.ColorId != lastColor)
-					{
-                        GameReader.PlayerChanged(e.Game.Code, e.PlayerControl.PlayerInfo, PlayerAction.ChangedColor);
-
-                        lastColor = e.PlayerControl.PlayerInfo.ColorId;
-                    }
-
-                    await Task.Delay(TimeSpan.FromMilliseconds(5000));
+                    _ = ChatManager.SendServerMessage(e.PlayerControl, "Type [fefeeffe]/discord [ffffffff]command to create a new game on the Discord server channel...");
                 }
 
-                Console.WriteLine($"Stopping player #{clientPlayer.Client.Id} watch.");
-            });
+                // ...
+            }
+            else
+            {
+                game.OnPlayerSpawned(e);
+            }
         }
 
         [EventListener]
         public void OnPlayerDestroyed(IPlayerDestroyedEvent e)
         {
-            GameReader.PlayerChanged(e.Game.Code, e.PlayerControl.PlayerInfo, PlayerAction.Left);
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnPlayerDestroyed(e);
         }
 
         [EventListener]
         public void OnPlayerExile(IPlayerExileEvent e)
         {
-            GameReader.PlayerChanged(e.Game.Code, e.PlayerControl.PlayerInfo, PlayerAction.Died);
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnPlayerExile(e);
         }
 
         [EventListener]
         public void OnPlayerMurder(IPlayerMurderEvent e)
         {
-            AutomuteUsPlugin.Log("PlayerMurder", $"Murder: ({e.PlayerControl.PlayerInfo.PlayerName}); Victim: ({e.Victim.PlayerInfo.PlayerName}); ");
-            GameReader.PlayerChanged(e.Game.Code, e.PlayerControl.PlayerInfo, PlayerAction.Died);
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnPlayerMurder(e);
         }
 
         [EventListener]
         public void OnMeetingStarted(IMeetingStartedEvent e)
         {
-            GameReader.GameStateChanged(e.Game.Code, GameState.DISCUSSION);
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnMeetingStarted(e);
         }
 
         [EventListener]
         public void OnMeetingEnded(IMeetingEndedEvent e)
         {
-            GameReader.GameStateChanged(e.Game.Code, GameState.TASKS);
+            AutomuteUsPlugin.gamesManager.GetGame(e)?.OnMeetingEnded(e);
         }
-
-        /*[EventListener]
-        public async ValueTask OnPlayerChat(IPlayerChatEvent e)
-        {
-            AutomuteUsPlugin.Log("HELLOW", e.PlayerControl.PlayerInfo.PlayerName + " said " + e.Message);
-
-            if (e.Message == "qq")
-            {
-                e.Cancel = true;
-                // ...
-            }
-        }*/
     }
 }
