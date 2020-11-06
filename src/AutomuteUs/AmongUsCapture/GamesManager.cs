@@ -30,12 +30,16 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
         }*/
 
         public static void OnGameStateChanged(string code, GameState state)
-		{
-            OnGameStateChangedEvent.Invoke(null, new GameStateChangedEventArgs { NewState = state });
+        {
+            OnGameStateChangedEvent.Invoke(null, new GameStateChangedEventArgs
+            {
+                LobbyCode = code,
+                NewState = state
+            });
         }
 
         public static void OnNewGame(string code)
-		{
+        {
             OnNewGameEvent.Invoke(null, new DiscordGameEventArgs()
             {
                 LobbyCode = code,
@@ -43,7 +47,7 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
         }
 
         public static void OnEndGame(string code)
-		{
+        {
             OnEndGameEvent.Invoke(null, new DiscordGameEventArgs()
             {
                 LobbyCode = code,
@@ -51,7 +55,7 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
         }
 
         public static void OnJoinedLobby(string code)
-		{
+        {
             OnJoinedLobbyEvent.Invoke(null, new LobbyEventArgs()
             {
                 LobbyCode = code,
@@ -63,33 +67,30 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
         {
             OnPlayerChangedEvent.Invoke(null, new PlayerChangedEventArgs()
             {
+                LobbyCode = code,
                 Action = action,
                 Name = info.PlayerName,
                 IsDead = info.IsDead,
                 Disconnected = false,
-                Color = (ColorType) info.ColorId
+                Color = (ColorType)info.ColorId
             });
         }
 
         public bool AddNewGame(IGameEvent e)
-		{
+        {
             return _games.TryAdd(e.Game.Code, new Game(e.Game.Code));
-		}
+        }
 
         public Game GetGame(IGameEvent e)
         {
-            if (_games.TryGetValue(e.Game.Code, out var game))
-                return game;
-
-            return null;
+            _games.TryGetValue(e.Game.Code, out var game);
+            return game;
         }
 
         public Game GetGame(string code)
         {
-            if (_games.TryGetValue(code, out var game))
-                return game;
-
-            return null;
+            _games.TryGetValue(GameCode.From(code), out var game);
+            return game;
         }
 
         public bool HasGame(IGameEvent e)
@@ -99,17 +100,17 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 
         public bool HasGame(string code)
         {
-            return _games.ContainsKey(code);
+            return _games.ContainsKey(GameCode.From(code));
         }
 
         public bool RemoveGame(IGameEvent e)
         {
-			return _games.TryRemove(e.Game.Code, out _);
+            return _games.TryRemove(e.Game.Code, out _);
         }
 
         public bool RemoveGame(string code)
         {
-			return _games.TryRemove(code, out _);
+            return _games.TryRemove(GameCode.From(code), out _);
         }
     }
 
@@ -133,12 +134,17 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
         Exiled
     }
 
-    public class GameStateChangedEventArgs : EventArgs
+    public class DiscordGameEventArgs : EventArgs
+    {
+        public string LobbyCode { get; set; }
+    }
+
+    public class GameStateChangedEventArgs : DiscordGameEventArgs
     {
         public GameState NewState { get; set; }
     }
 
-    public class PlayerChangedEventArgs : EventArgs
+    public class PlayerChangedEventArgs : DiscordGameEventArgs
     {
         public PlayerAction Action { get; set; }
         public string Name { get; set; }
@@ -147,14 +153,8 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
         public ColorType Color { get; set; }
     }
 
-    public class LobbyEventArgs : EventArgs
+    public class LobbyEventArgs : DiscordGameEventArgs
     {
-        public string LobbyCode { get; set; }
         public int Region { get; set; }
-    }
-
-    public class DiscordGameEventArgs : EventArgs
-    {
-        public string LobbyCode { get; set; }
     }
 }

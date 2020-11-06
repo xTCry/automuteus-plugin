@@ -4,6 +4,7 @@ using Impostor.Api.Events.Managers;
 using Impostor.Api.Plugins;
 using Impostor.Plugins.AutomuteUs.Handlers;
 using Impostor.Plugins.AutomuteUs.AmongUsCapture;
+using Impostor.Api.Games.Managers;
 
 namespace Impostor.Plugins.AutomuteUs
 {
@@ -18,13 +19,15 @@ namespace Impostor.Plugins.AutomuteUs
         private static ILogger<AutomuteUsPlugin> _logger;
         private readonly IEventManager _eventManager;
 
+        public static IGameManager gameManager;
         public static readonly ClientSocket socket = new ClientSocket();
         public static readonly GamesManager gamesManager = new GamesManager();
 
-        public AutomuteUsPlugin(ILogger<AutomuteUsPlugin> logger, IEventManager eventManager)
+        public AutomuteUsPlugin(ILogger<AutomuteUsPlugin> logger, IEventManager eventManager, IGameManager _gameManager)
         {
             _logger = logger;
             _eventManager = eventManager;
+            gameManager = _gameManager;
         }
 
         public override async ValueTask EnableAsync()

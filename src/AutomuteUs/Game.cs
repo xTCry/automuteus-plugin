@@ -4,8 +4,8 @@ using Impostor.Api.Events.Player;
 using Impostor.Api.Games;
 using Impostor.Plugins.AutomuteUs.AmongUsCapture;
 using Impostor.Plugins.AutomuteUs.Handlers;
-using System;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace Impostor.Plugins.AutomuteUs
 {
@@ -24,21 +24,57 @@ namespace Impostor.Plugins.AutomuteUs
 			TAG = gameCode;
 		}
 
+		public Player GetGameHostPlayer() => _players.FirstOrDefault(kvp => kvp.Value.ClientPlayer.IsHost).Value;
+
 		public void OnBotConnected()
 		{
+			AutomuteUsPlugin.Log(TAG, $"Game OnBotConnected");
 			BotConnected = true;
 			needForceUpdate = true;
+
+			CheckUpdate(); // for test
+
+			_ = ChatManager.SendServerMessage(GetGameHostPlayer()?.ClientPlayer.Character, new string[] {
+				"[09ff09ff]This game was added to [008080ff]AutomuteUs",
+				$"[000000ff]Type [ffa500ff].au n {gameCode} [000000ff]command\n" +
+					$"to create a new game in [add8e6ff]Discord"
+			});
 		}
 
-		public void CheckUpdate(IGameEvent e)
+		public void CheckUpdate(IGameEvent e = null)
 		{
 			if (!needForceUpdate) { return; }
 			needForceUpdate = false;
 
-			// TODO: update all info from e.Game.Players or _players
-			foreach(var player in _players)
+			SyncPlayers();
+
+			foreach (var player in _players)
 			{
-				player.Value.WatchMe();
+				player.Value.TryWatchMe();
+				GamesManager.OnPlayerChanged(e.Game.Code, player.Value.ClientPlayer.Character.PlayerInfo, PlayerAction.ForceUpdated);
+			}
+		}
+
+		public void SyncPlayers()
+		{
+			foreach (var kvp in _players.Where(player => !player.Value.IsConnected))
+			{
+				_players.TryRemove(kvp.Key, out var _);
+			}
+
+			var game = AutomuteUsPlugin.gameManager.Find(gameCode);
+			if (game == null)
+			{
+				// ftw?..
+				return;
+			}
+
+			foreach (var player in game.Players)
+			{
+				if (!_players.ContainsKey(player.Client.Id))
+				{
+					_players.TryAdd(player.Client.Id, new Player(player, this));
+				}
 			}
 		}
 
@@ -47,6 +83,7 @@ namespace Impostor.Plugins.AutomuteUs
 			GamesManager.OnGameStateChanged(e.Game.Code, GameState.LOBBY);
 			GamesManager.OnJoinedLobby(e.Game.Code);
 
+			needForceUpdate = true;
 			CheckUpdate(e);
 		}
 

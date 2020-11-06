@@ -2,7 +2,8 @@
 
 namespace Impostor.Plugins.AutomuteUs
 {
-    static class PluginConfig {
+    static class PluginConfig
+    {
         public static IAutomuteUsConfig config = new ConfigurationBuilder<IAutomuteUsConfig>().UseJsonFile("./automuteus.json").Build();
     }
 
@@ -13,5 +14,5 @@ namespace Impostor.Plugins.AutomuteUs
 
         [Option(Alias = "SecretKey", DefaultValue = "")]
         public string SecretKey { get; }
-	}
+    }
 }

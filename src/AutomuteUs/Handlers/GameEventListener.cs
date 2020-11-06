@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Impostor.Plugins.AutomuteUs.Handlers
 {
-	class GameEventListener: IEventListener
+    class GameEventListener : IEventListener
     {
         public const string TAG = "GameEvent";
 
-		/*[EventListener]
+        /*[EventListener]
         public void OnGameCreated(IGameCreatedEvent e)
         {
             AutomuteUsPlugin.Log(TAG, "Game > created");
@@ -48,10 +48,10 @@ namespace Impostor.Plugins.AutomuteUs.Handlers
             Game game = AutomuteUsPlugin.gamesManager.GetGame(e);
             if (game == null)
             {
-                    _ = ChatManager.SendServerMessage(e.PlayerControl, "We play by [add8e6ff]Discord [ffffffff]with [008080ff]AutometeUs");
+                _ = ChatManager.SendServerMessage(e.PlayerControl, "We play by [add8e6ff]Discord [000000ff]with [008080ff]AutometeUs");
                 if (e.ClientPlayer.IsHost)
                 {
-                    _ = ChatManager.SendServerMessage(e.PlayerControl, "Type [fefeeffe]/discord [ffffffff]command to create a new game on the Discord server channel...");
+                    _ = ChatManager.SendServerMessage(e.PlayerControl, "Type [ffa500ff]/discord [000000ff]command to create a new game on the Discord server channel...");
                 }
 
                 // ...

@@ -20,8 +20,16 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 			GamesManager.OnJoinedLobbyEvent += JoinedLobbyHandler;
 
 			socket.On("gameAdded", (response) => {
-				AutomuteUsPlugin.Log("ClientSocket", $"New game successfully added! => {response.GetValue<string>()}");
-				AutomuteUsPlugin.gamesManager.GetGame(response.GetValue<DiscordGameEventArgs>().LobbyCode)?.OnBotConnected();
+				try
+				{
+					var LobbyCode = response.GetValue<DiscordGameEventArgs>()?.LobbyCode;
+					AutomuteUsPlugin.Log("ClientSocket", $"New game successfully added! => {LobbyCode}");
+					AutomuteUsPlugin.gamesManager.GetGame(LobbyCode)?.OnBotConnected();
+				}
+				catch (Exception ex)
+				{
+					AutomuteUsPlugin.Log("ClientSocket", $"Error Event gameAdded => {ex.Message}");
+				}
 			});
 
 			socket.OnConnected += async (sender, e) =>
@@ -29,7 +37,7 @@ namespace Impostor.Plugins.AutomuteUs.AmongUsCapture
 				AutomuteUsPlugin.Log("ClientSocket", $"Connected successfully! => {socket.ServerUri}");
 
 				await socket.EmitAsync("secretKey", SecretKey);
-	
+
 				AutomuteUsPlugin.Log("ClientSocket", $"Connection SecretKey ({SecretKey}) sent to server.");
 			};
 

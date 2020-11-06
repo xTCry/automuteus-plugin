@@ -5,6 +5,7 @@ using Impostor.Api.Net.Inner.Objects;
 using Impostor.Plugins.AutomuteUs.AmongUsCapture;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Impostor.Plugins.AutomuteUs.Handlers
@@ -38,7 +39,6 @@ namespace Impostor.Plugins.AutomuteUs.Handlers
 			msg = msg[CommandPrefix.Length..];
 
 			string[] args = msg.Split(" ");
-			Console.WriteLine(args);
 
 			if (_commands.TryGetValue(args[0], out var callback))
 			{
@@ -49,19 +49,21 @@ namespace Impostor.Plugins.AutomuteUs.Handlers
 			}
 		}
 
-		public static async ValueTask SendServerMessage(IInnerPlayerControl control, string prefix, string message = null)
+		public static async ValueTask SendServerMessage(IInnerPlayerControl control, string message, string prefix = "[add8e6ff]AutometeUs")
 		{
-			if (message == null)
-			{
-				message = prefix;
-				prefix = "[add8e6ff]AutometeUs";
-			}
+			await SendServerMessage(control, new string[] { message }, prefix);
+		}
 
+		public static async ValueTask SendServerMessage(IInnerPlayerControl control, string[] messages, string prefix = "[add8e6ff]AutometeUs")
+		{
 			var name = control.PlayerInfo.PlayerName;
 			var colorId = control.PlayerInfo.ColorId;
 			await control.SetNameAsync(prefix);
 			await control.SetColorAsync(ColorType.Blue);
-			await control.SendChatAsync(message);
+			foreach (var message in messages)
+			{
+				await control.SendChatAsync(message);
+			}
 			await control.SetNameAsync(name);
 			await control.SetColorAsync(colorId);
 		}

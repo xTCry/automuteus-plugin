@@ -7,8 +7,8 @@ namespace Impostor.Plugins.AutomuteUs
 {
 	public class Player
 	{
-		private readonly Game Game;
-		private readonly IClientPlayer ClientPlayer;
+		public readonly Game Game;
+		public readonly IClientPlayer ClientPlayer;
 		private bool isWatthing;
 
 		public Player(IClientPlayer player, Game game)
@@ -18,11 +18,13 @@ namespace Impostor.Plugins.AutomuteUs
 
 			if (Game.BotConnected)
 			{
-				WatchMe();
+				TryWatchMe();
 			}
 		}
 
-		public void WatchMe()
+		public bool IsConnected => ClientPlayer.Client.Connection != null && ClientPlayer.Client.Connection.IsConnected;
+
+		public void TryWatchMe()
 		{
 			if (isWatthing) { return; }
 			isWatthing = true;
@@ -33,8 +35,7 @@ namespace Impostor.Plugins.AutomuteUs
 
 				var lastColor = ClientPlayer.Character.PlayerInfo.ColorId;
 
-				while (isWatthing && ClientPlayer.Client.Connection != null &&
-					   ClientPlayer.Client.Connection.IsConnected)
+				while (isWatthing && IsConnected)
 				{
 					if (ClientPlayer.Character.PlayerInfo.ColorId != lastColor)
 					{
